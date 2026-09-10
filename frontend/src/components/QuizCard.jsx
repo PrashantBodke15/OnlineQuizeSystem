@@ -1,0 +1,3 @@
+export default function QuizCard({ quiz, onStart }) {
+  return <article className="quiz-card"><div className="quiz-icon">{quiz.subject?.name?.slice(0, 1) || 'Q'}</div><div className="quiz-card-body"><span className="eyebrow">{quiz.subject?.name || 'General'}</span><h3>{quiz.title}</h3><p>{quiz.description || 'Test your knowledge with a focused practice quiz.'}</p><div className="quiz-meta"><span>◷ {quiz.duration} min</span><span>▦ {quiz.totalQuestions} questions</span></div></div><button className="text-button" onClick={() => onStart(quiz)}>Start quiz <span>→</span></button></article>
+}
