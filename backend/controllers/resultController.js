@@ -8,7 +8,8 @@ async function create(req, res, next) {
     const correctAnswers = details.filter((a) => a.isCorrect).length;
     const totalQuestions = questions.length;
     const result = await Result.create({ user: req.user._id, quiz, score: correctAnswers, totalQuestions, correctAnswers, wrongAnswers: totalQuestions - correctAnswers, percentage: totalQuestions ? Math.round(correctAnswers / totalQuestions * 100) : 0, answers: details });
-    res.status(201).json(await result.populate('quiz', 'title'));
+    const populatedResult = await result.populate('quiz', 'title');
+    res.status(201).json({ ...populatedResult.toObject(), message: 'Quiz result submitted successfully' });
   } catch (e) { next(e); }
 }
 const mine = async (req, res, next) => { try { res.json(await Result.find({ user: req.user._id }).populate('quiz', 'title').sort('-submittedAt')); } catch (e) { next(e); } };

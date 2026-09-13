@@ -49,10 +49,10 @@ const quizData = [
 ];
 async function seed() {
   await connectDB(); await Promise.all([User.deleteMany(), Subject.deleteMany(), Quiz.deleteMany(), Question.deleteMany()]);
-  const admin = await User.create({ name: 'Admin', email: 'admin@gmail.com', password: await bcrypt.hash('Admin@123', 12), role: 'admin' });
+  const admin = await User.create({ name: 'Prashant', email: 'prashant@gmail.com', password: await bcrypt.hash('Prashant@123', 12), role: 'admin' });
   await User.create([{ name: 'Aarav Student', email: 'student1@gmail.com', password: await bcrypt.hash('Student@123', 12) }, { name: 'Maya Student', email: 'student2@gmail.com', password: await bcrypt.hash('Student@123', 12) }]);
   const subjectDocs = await Subject.insertMany(quizData.map(({ subject }) => ({ name: subject, description: `Practice ${subject} fundamentals and problem solving.` })));
   for (let index = 0; index < quizData.length; index += 1) { const quiz = await Quiz.create({ title: `${subjectDocs[index].name} Foundations`, description: `A focused ${subjectDocs[index].name} assessment.`, subject: subjectDocs[index]._id, duration: 10, totalQuestions: quizData[index].questions.length, createdBy: admin._id }); await Question.insertMany(quizData[index].questions.map(([questionText, optionA, optionB, optionC, optionD, correctAnswer]) => ({ quiz: quiz._id, questionText, optionA, optionB, optionC, optionD, correctAnswer }))); }
-  console.log('Seed complete. Admin: admin@gmail.com / Admin@123'); process.exit(0);
+  console.log('Seed complete. Admin Prashant: prashant@gmail.com / Prashant@123'); process.exit(0);
 }
 seed().catch((error) => { console.error(error); process.exit(1); });

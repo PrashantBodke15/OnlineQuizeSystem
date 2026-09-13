@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Online Quiz System
 
 A full-stack MERN online quiz platform. Students can register, take timed multiple-choice quizzes, submit answers, and view their scores. Admin users have protected REST endpoints for managing subjects, quizzes, questions, and results.
@@ -17,11 +18,13 @@ A full-stack MERN online quiz platform. Students can register, take timed multip
 ```text
 onlineQuizSystem/
 ├── backend/
+│   ├── app.js
 │   ├── config/db.js
 │   ├── controllers/
 │   ├── middleware/
 │   ├── models/
 │   ├── routes/
+│   ├── test/
 │   ├── .env.example
 │   ├── seed.js
 │   ├── server.js
@@ -88,7 +91,7 @@ npm run seed
 
 This creates:
 
-- Admin: `admin@gmail.com` / `Admin@123`
+- Admin Prashant: `prashant@gmail.com` / `Prashant@123`
 - Students: `student1@gmail.com` / `Student@123`
 - Students: `student2@gmail.com` / `Student@123`
 - Four subjects: Java, Python, JavaScript, SQL
@@ -115,6 +118,31 @@ npm run dev
 Open http://localhost:5173. The API health check is available at http://localhost:5000/api/health.
 
 If MongoDB is not running, the frontend still displays demo quizzes and allows a visual quiz walkthrough, but database authentication and result persistence require MongoDB and the backend.
+
+## Backend API Structure
+
+The backend separates API composition from process startup:
+
+```text
+backend/
+├── app.js                 # Express app, middleware, health check, errors
+├── server.js              # MongoDB connection and HTTP server startup
+├── routes/index.js        # Central API route registry
+├── routes/*Routes.js      # Resource-specific endpoints
+├── controllers/           # Request handling and database operations
+├── models/                # Mongoose schemas
+├── middleware/            # Authentication and error handling
+└── test/                  # Node API tests
+```
+
+Run the API test suite without connecting to MongoDB:
+
+```powershell
+cd D:\onlineQuizSystem\backend
+npm test
+```
+
+For integration tests, import the Express app from `backend/app.js` and provide a test database connection separately. Do not import `server.js` in route tests because it is responsible for starting the real HTTP server and connecting to the configured database.
 
 ## REST API
 
@@ -172,6 +200,114 @@ Authorization: Bearer <jwt-token>
 
 Correct answers are excluded from the question-fetch response and are evaluated only by the backend on submission.
 
+## Postman Test Flow
+
+Set this Postman environment variable:
+
+```text
+baseUrl = http://localhost:5000/api
+token = paste-the-login-token-here
+subjectId = paste-a-subject-id-here
+quizId = paste-the-created-quiz-id-here
+```
+
+### 1. Login as admin
+
+```http
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+```
+
+Body, using **raw > JSON**:
+
+```json
+{
+	"email": "admin@gmail.com",
+	"password": "Admin@123"
+}
+```
+
+Copy the `token` from the response into the `token` environment variable.
+
+### 2. Get subjects
+
+```http
+GET {{baseUrl}}/subjects
+```
+
+Copy the `_id` of the subject you want to use into `subjectId`.
+
+### 3. Create a quiz
+
+In Postman, choose **Authorization > Bearer Token** and set the token to `{{token}}`.
+
+```http
+POST {{baseUrl}}/quizzes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+```
+
+Body:
+
+```json
+{
+	"title": "React Component Thinking",
+	"description": "Test core React component concepts.",
+	"subject": "{{subjectId}}",
+	"duration": 15,
+	"totalQuestions": 2
+}
+```
+
+Copy the created quiz `_id` from the response into `quizId`.
+
+### 4. Add questions to the quiz
+
+Run this request once for each question:
+
+```http
+POST {{baseUrl}}/questions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+```
+
+Body:
+
+```json
+{
+	"quiz": "{{quizId}}",
+	"questionText": "Which hook is used to manage local component state?",
+	"optionA": "useState",
+	"optionB": "useRoute",
+	"optionC": "useLink",
+	"optionD": "useServer",
+	"correctAnswer": "A"
+}
+```
+
+### 5. Verify the quiz questions
+
+```http
+GET {{baseUrl}}/questions/quiz/{{quizId}}
+Authorization: Bearer {{token}}
+```
+
+The response intentionally does not include `correctAnswer` for quiz takers.
+
+### Success response messages
+
+Mutation endpoints include a human-readable `message` field while preserving the resource fields used by the frontend:
+
+```json
+{
+	"message": "Quiz created successfully",
+	"_id": "created-quiz-id",
+	"title": "React Component Thinking"
+}
+```
+
+Other successful messages include `Login successful`, `Registration successful`, `Question created successfully`, `Subject created successfully`, and `Quiz result submitted successfully`.
+
 ## Troubleshooting
 
 - MongoDB connection failed: start the local MongoDB service or verify the Atlas URI, credentials, and IP allowlist.
@@ -185,3 +321,6 @@ Correct answers are excluded from the question-fetch response and are evaluated 
 ## Production Notes
 
 Use a strong generated JWT secret, restrict CORS to the deployed frontend origin, enable MongoDB authentication, and serve the built frontend with a static host or reverse proxy. Run `npm run build` in `frontend` before deployment.
+=======
+# OnlineQuizeSystem
+>>>>>>> 9709512e042b3a3c73ea241dadba6b359d293213
