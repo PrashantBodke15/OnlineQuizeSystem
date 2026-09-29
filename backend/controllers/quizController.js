@@ -1,7 +1,153 @@
-const Quiz = require('../models/Quiz');
-const all = async (req, res, next) => { try { res.json(await Quiz.find().populate('subject', 'name').sort('-createdAt')); } catch (e) { next(e); } };
-const one = async (req, res, next) => { try { const item = await Quiz.findById(req.params.id).populate('subject', 'name'); if (!item) return res.status(404).json({ message: 'Quiz not found' }); res.json(item); } catch (e) { next(e); } };
-const create = async (req, res, next) => { try { const quiz = await Quiz.create({ ...req.body, createdBy: req.user._id }); res.status(201).json({ ...quiz.toObject(), message: 'Quiz created successfully' }); } catch (e) { next(e); } };
-const update = async (req, res, next) => { try { const quiz = await Quiz.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }); res.json({ ...quiz.toObject(), message: 'Quiz updated successfully' }); } catch (e) { next(e); } };
-const remove = async (req, res, next) => { try { await Quiz.findByIdAndDelete(req.params.id); res.json({ message: 'Quiz deleted' }); } catch (e) { next(e); } };
-module.exports = { all, one, create, update, remove };
+const Quiz = require("../models/Quiz");
+
+
+// CREATE QUIZ
+const createQuiz = async (req, res) => {
+    try {
+        const {
+            title,
+            description,
+            subject,
+            duration,
+            questions
+        } = req.body;
+
+        const quiz = await Quiz.create({
+            title,
+            description,
+            subject,
+            duration,
+            questions,
+            createdBy: req.user.id
+        });
+
+        res.status(201).json({
+            success: true,
+            message: "Quiz created successfully",
+            quiz
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+
+// GET ALL QUIZZES
+const getQuizzes = async (req, res) => {
+    try {
+        const quizzes = await Quiz.find()
+            .populate("createdBy", "name email");
+
+        res.json({
+            success: true,
+            count: quizzes.length,
+            quizzes
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+
+// GET SINGLE QUIZ
+const getQuiz = async (req, res) => {
+    try {
+        const quiz = await Quiz.findById(req.params.id)
+            .populate("createdBy", "name email");
+
+        if (!quiz) {
+            return res.status(404).json({
+                success: false,
+                message: "Quiz not found"
+            });
+        }
+
+        res.json({
+            success: true,
+            quiz
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+
+// UPDATE QUIZ
+const updateQuiz = async (req, res) => {
+    try {
+        const quiz = await Quiz.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            {
+                new: true,
+                runValidators: true
+            }
+        );
+
+        if (!quiz) {
+            return res.status(404).json({
+                success: false,
+                message: "Quiz not found"
+            });
+        }
+
+        res.json({
+            success: true,
+            message: "Quiz updated successfully",
+            quiz
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+
+// DELETE QUIZ
+const deleteQuiz = async (req, res) => {
+    try {
+        const quiz = await Quiz.findByIdAndDelete(req.params.id);
+
+        if (!quiz) {
+            return res.status(404).json({
+                success: false,
+                message: "Quiz not found"
+            });
+        }
+
+        res.json({
+            success: true,
+            message: "Quiz deleted successfully"
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+
+module.exports = {
+    createQuiz,
+    getQuizzes,
+    getQuiz,
+    updateQuiz,
+    deleteQuiz
+};

@@ -1,24 +1,33 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const jwt = require("jsonwebtoken");
 
-async function protect(req, res, next) {
-  try {
-    const token = req.headers.authorization?.startsWith('Bearer ')
-      ? req.headers.authorization.slice(7)
-      : null;
-    if (!token) return res.status(401).json({ message: 'Authentication required' });
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(payload.id).select('-password');
-    if (!req.user) return res.status(401).json({ message: 'User no longer exists' });
-    next();
-  } catch (error) {
-    res.status(401).json({ message: 'Invalid or expired token' });
-  }
-}
+const protect = (req, res, next) => {
+    try {
+        const authHeader = req.headers.authorization;
 
-function adminOnly(req, res, next) {
-  if (req.user?.role !== 'admin') return res.status(403).json({ message: 'Admin access required' });
-  next();
-}
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return res.status(401).json({
+                success: false,
+                message: "Authentication token required"
+            });
+        }
 
-module.exports = { protect, adminOnly };
+        const token = authHeader.split(" ")[1];
+
+        const decoded = jwt.verify(
+            token,
+            process.env.JWT_SECRET
+        );
+
+        req.user = decoded;
+
+        next();
+
+    } catch (error) {
+        return res.status(401).json({
+            success: false,
+            message: "Invalid or expired token"
+        });
+    }
+};
+
+module.exports = protect;

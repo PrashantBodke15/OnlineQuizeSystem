@@ -1,9 +1,35 @@
-const mongoose = require('mongoose');
-module.exports = mongoose.model('Quiz', new mongoose.Schema({
-  title: { type: String, required: true, trim: true },
-  description: { type: String, default: '' },
-  subject: { type: mongoose.Schema.Types.ObjectId, ref: 'Subject', required: true },
-  duration: { type: Number, required: true, min: 1 },
-  totalQuestions: { type: Number, required: true, min: 1 },
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
-}, { timestamps: true }));
+const mongoose = require("mongoose");
+
+const userSchema = new mongoose.Schema(
+    {
+        name: {
+            type: String,
+            required: true,
+            trim: true
+        },
+
+        email: {
+            type: String,
+            required: true,
+            unique: true,
+            lowercase: true,
+            trim: true
+        },
+
+        password: {
+            type: String,
+            required: true
+        },
+
+        role: {
+            type: String,
+            enum: ["student", "teacher", "admin"],
+            default: "student"
+        }
+    },
+    {
+        timestamps: true
+    }
+);
+
+module.exports = mongoose.model("User", userSchema);    

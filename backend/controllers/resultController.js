@@ -1,18 +1,113 @@
-const Result = require('../models/Result');
-const Question = require('../models/Question');
-async function create(req, res, next) {
-  try {
-    const { quiz, answers = [] } = req.body;
-    const questions = await Question.find({ quiz });
-    const details = questions.map((question) => { const selected = answers.find((a) => String(a.question) === String(question._id))?.selectedAnswer || ''; return { question: question._id, selectedAnswer: selected, correctAnswer: question.correctAnswer, isCorrect: selected === question.correctAnswer }; });
-    const correctAnswers = details.filter((a) => a.isCorrect).length;
-    const totalQuestions = questions.length;
-    const result = await Result.create({ user: req.user._id, quiz, score: correctAnswers, totalQuestions, correctAnswers, wrongAnswers: totalQuestions - correctAnswers, percentage: totalQuestions ? Math.round(correctAnswers / totalQuestions * 100) : 0, answers: details });
-    const populatedResult = await result.populate('quiz', 'title');
-    res.status(201).json({ ...populatedResult.toObject(), message: 'Quiz result submitted successfully' });
-  } catch (e) { next(e); }
-}
-const mine = async (req, res, next) => { try { res.json(await Result.find({ user: req.user._id }).populate('quiz', 'title').sort('-submittedAt')); } catch (e) { next(e); } };
-const one = async (req, res, next) => { try { const result = await Result.findById(req.params.id).populate('quiz', 'title'); if (!result || (String(result.user) !== String(req.user._id) && req.user.role !== 'admin')) return res.status(404).json({ message: 'Result not found' }); res.json(result); } catch (e) { next(e); } };
-const all = async (req, res, next) => { try { res.json(await Result.find().populate('user', 'name email').populate('quiz', 'title').sort('-submittedAt')); } catch (e) { next(e); } };
-module.exports = { create, mine, one, all };
+const Result = require("../models/Result");
+const Quiz = require("../models/Quiz");
+
+
+// SUBMIT QUIZ
+const submitQuiz = async (req, res) => {
+    try {
+        const { quizId, answers } = req.body;
+
+        const quiz = await Quiz.findById(quizId);
+
+        if (!quiz) {
+            return res.status(404).json({
+                success: false,
+                message: "Quiz not found"
+            });
+        }
+
+        let score = 0;
+
+        quiz.questions.forEach((question, index) => {
+            if (answers[index] === question.correctAnswer) {
+                score++;
+            }
+        });
+
+        const totalQuestions = quiz.questions.length;
+
+        const percentage =
+            totalQuestions > 0
+                ? (score / totalQuestions) * 100
+                : 0;
+
+        const result = await Result.create({
+            user: req.user.id,
+            quiz: quizId,
+            score,
+            totalQuestions,
+            percentage
+        });
+
+        res.status(201).json({
+            success: true,
+            message: "Quiz submitted successfully",
+            result
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+
+// GET MY RESULTS
+const getMyResults = async (req, res) => {
+    try {
+        const results = await Result.find({
+            user: req.user.id
+        })
+            .populate("quiz", "title subject")
+            .populate("user", "name email");
+
+        res.json({
+            success: true,
+            count: results.length,
+            results
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+
+// GET ONE RESULT
+const getResult = async (req, res) => {
+    try {
+        const result = await Result.findById(req.params.id)
+            .populate("quiz", "title subject")
+            .populate("user", "name email");
+
+        if (!result) {
+            return res.status(404).json({
+                success: false,
+                message: "Result not found"
+            });
+        }
+
+        res.json({
+            success: true,
+            result
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+
+module.exports = {
+    submitQuiz,
+    getMyResults,
+    getResult
+};

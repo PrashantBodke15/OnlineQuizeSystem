@@ -1,8 +1,30 @@
-const router = require('express').Router();
-const controller = require('../controllers/quizController'); const { protect, adminOnly } = require('../middleware/authMiddleware');
-router.get('/', controller.all); router.get('/:id', controller.one); router.post('/', protect, adminOnly, controller.create); router.put('/:id', protect, adminOnly, controller.update); router.delete('/:id', protect, adminOnly, controller.remove);
-module.exports = router;
+const express = require("express");
 
-router.get('/', (req, res) =>{
-    res.send("running");
-});
+const {
+    createQuiz,
+    getQuizzes,
+    getQuiz,
+    updateQuiz,
+    deleteQuiz
+} = require("../controllers/quizController");
+
+const protect = require("../middleware/authMiddleware");
+
+const router = express.Router();
+
+
+// Public
+router.get("/", getQuizzes);
+
+router.get("/:id", getQuiz);
+
+
+// Protected
+router.post("/", protect, createQuiz);
+
+router.put("/:id", protect, updateQuiz);
+
+router.delete("/:id", protect, deleteQuiz);
+
+
+module.exports = router;
